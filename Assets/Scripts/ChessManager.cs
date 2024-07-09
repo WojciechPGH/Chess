@@ -6,12 +6,15 @@ namespace Chess
 {
     public class ChessManager
     {
+        private Dictionary<ChessPieceColor, uint> _currentTurn; // int currentTurn?
+        private List<ChessPiece> _twoStepAdvanceLastTurn;
+
         private ChessManager()
         {
-            _currentTurn = new Dictionary<ChessSide, uint>(2)
+            _currentTurn = new Dictionary<ChessPieceColor, uint>(2)
             {
-                [ChessSide.White] = 1,
-                [ChessSide.Black] = 1
+                [ChessPieceColor.White] = 1,
+                [ChessPieceColor.Black] = 1
             };
         }
         #region Singleton
@@ -25,19 +28,18 @@ namespace Chess
             }
         }
         #endregion
-        private Dictionary<ChessSide, uint> _currentTurn;
 
-        public uint CurrentTurn(ChessSide side)
+        public uint CurrentTurn(ChessPieceColor side)
         {
             return _currentTurn[side];
         }
 
-        public bool IsCellEmpty(ChessSide side, Vector2Int cell)
+        public bool IsCellEmpty(ChessPieceColor side, Vector2Int cell)
         {
             return false;
         }
 
-        public bool IsEnemyAt(ChessSide side, Vector2Int cell)
+        public bool IsEnemyAt(ChessPieceColor side, Vector2Int cell)
         {
             return false;
         }

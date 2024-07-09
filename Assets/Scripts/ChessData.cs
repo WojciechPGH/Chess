@@ -12,7 +12,7 @@ namespace Chess
         Pawn
     }
 
-    public enum ChessSide
+    public enum ChessPieceColor
     {
         White = 1,
         Black = 2

@@ -4,12 +4,16 @@ using UnityEngine;
 
 namespace Chess
 {
+    public interface IMovementValidation
+    {
+        public bool Validate(Vector2Int currentPosition, Vector2Int movePosition);
+    }
     public class PawnMovement : IMovementValidation
     {
-        private readonly ChessSide _side;
+        private readonly ChessPieceColor _side;
         private readonly ChessManager _manager;
 
-        public PawnMovement(ChessSide side, ChessManager manager)
+        public PawnMovement(ChessPieceColor side, ChessManager manager)
         {
             _side = side;
             _manager = manager;
@@ -37,14 +41,9 @@ namespace Chess
 
             }
             return false;
-            //en passant
             //promotion
         }
     }
 
 
-    public interface IMovementValidation
-    {
-        public bool Validate(Vector2Int currentPosition, Vector2Int movePosition);
-    }
 }
