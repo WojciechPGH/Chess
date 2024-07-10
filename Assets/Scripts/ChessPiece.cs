@@ -128,11 +128,29 @@ namespace Chess
 
     public class KnightPiece : ChessPiece
     {
+        private static readonly Vector2Int[] _knightMoves = new Vector2Int[]
+        {
+            new Vector2Int(2, 1),
+            new Vector2Int(2, -1),
+            new Vector2Int(-2, 1),
+            new Vector2Int(-2, -1),
+            new Vector2Int(1, 2),
+            new Vector2Int(1, -2),
+            new Vector2Int(-1, 2),
+            new Vector2Int(-1, -2)
+        };
         public KnightPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
-            throw new System.NotImplementedException();
+            List<Vector2Int> validMoves = new List<Vector2Int>();
+            foreach (Vector2Int move in _knightMoves)
+            {
+                Vector2Int newPosition = _position + move;
+                if (board.IsPositionEmpty(newPosition) || board.IsOppenentAt(newPosition, _color))
+                    validMoves.Add(newPosition);
+            }
+            return validMoves;
         }
     }
 
