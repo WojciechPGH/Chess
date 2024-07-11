@@ -13,22 +13,11 @@ namespace Chess
         public ChessPieceColor Color => _color;
         public Vector2Int Position => _position;
 
-        public ChessPiece(int id, Vector2Int position, ChessPieceColor color)
+        public ChessPiece(ChessPieceColor color, int id, Vector2Int position)
         {
             _id = id;
             _position = position;
             _color = color;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is not ChessPiece piece) return false;
-            return _id == piece._id;
-        }
-
-        public override int GetHashCode()
-        {
-            return _id.GetHashCode();
         }
 
         public abstract List<Vector2Int> GetValidMoves(ChessBoard board);
@@ -37,7 +26,7 @@ namespace Chess
 
     public class PawnPiece : ChessPiece
     {
-        public PawnPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
+        public PawnPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -71,7 +60,7 @@ namespace Chess
     }
     public class KingPiece : ChessPiece
     {
-        public KingPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
+        public KingPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -95,10 +84,9 @@ namespace Chess
             return validPositions;
         }
     }
-
     public class QueenPiece : ChessPiece
     {
-        public QueenPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
+        public QueenPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -125,7 +113,6 @@ namespace Chess
             return validPositions;
         }
     }
-
     public class KnightPiece : ChessPiece
     {
         private static readonly Vector2Int[] _knightMoves = new Vector2Int[]
@@ -139,7 +126,7 @@ namespace Chess
             new Vector2Int(-1, 2),
             new Vector2Int(-1, -2)
         };
-        public KnightPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
+        public KnightPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -153,10 +140,9 @@ namespace Chess
             return validMoves;
         }
     }
-
     public class RookPiece : ChessPiece
     {
-        public RookPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
+        public RookPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -183,10 +169,9 @@ namespace Chess
             return validPositions;
         }
     }
-
     public class BishopPiece : ChessPiece
     {
-        public BishopPiece(int id, Vector2Int position, ChessPieceColor color) : base(id, position, color) { }
+        public BishopPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {

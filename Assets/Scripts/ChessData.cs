@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Chess
 {
-    public enum ChessFifures
+    public enum ChessFigures
     {
         King = 1,
         Queen,

@@ -1,59 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace Chess
 {
-    public abstract class ChessFactory
+    public interface IChessPieceFactory
     {
-        public abstract ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side);
+        public ChessPiece CreateChessPiece(ChessFigures figure, ChessPieceColor color, int id, Vector2Int position);
     }
 
-    public class PawnPieceFactory : ChessFactory
+    public class ChessPieceFactory : IChessPieceFactory
     {
-        public override ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side)
-        {
-            return new PawnPiece(id, position, side);
-        }
-    }
 
-    public class KingPieceFactory : ChessFactory
-    {
-        public override ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side)
+        public ChessPiece CreateChessPiece(ChessFigures figure, ChessPieceColor color, int id, Vector2Int position)
         {
-            return new KingPiece(id, position, side);
-        }
-    }
+            ChessPiece piece = figure switch
+            {
+                ChessFigures.King => new KingPiece(id, position, color),
+                ChessFigures.Queen => new QueenPiece(id, position, color),
+                ChessFigures.Rook => new RookPiece(id, position, color),
+                ChessFigures.Bishop => new BishopPiece(id, position, color),
+                ChessFigures.Knight => new KnightPiece(id, position, color),
+                ChessFigures.Pawn => new PawnPiece(id, position, color),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
-    public class QueenPieceFactory : ChessFactory
-    {
-        public override ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side)
-        {
-            return new QueenPiece(id, position, side);
-        }
-    }
-
-    public class RookPieceFactory : ChessFactory
-    {
-        public override ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side)
-        {
-            return new RookPiece(id, position, side);
-        }
-    }
-
-    public class KnightPieceFactory : ChessFactory
-    {
-        public override ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side)
-        {
-            return new KnightPiece(id, position, side);
-        }
-    }
-
-    public class BishopPieceFactory : ChessFactory
-    {
-        public override ChessPiece CreateChessPiece(int id, Vector2Int position, ChessPieceColor side)
-        {
-            return new BishopPiece(id, position, side);
+            return piece;
         }
     }
 }

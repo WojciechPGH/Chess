@@ -1,6 +1,4 @@
-using Codice.Client.BaseCommands.BranchExplorer;
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace Chess
@@ -8,29 +6,32 @@ namespace Chess
     public class ChessBoard
     {
         public const byte BOARD_SIZE = 8;
+        public event Action<ChessPiece, ChessFigures> OnChessPieceCreate;
+
         private ChessPiece[,] _board;
         private Vector2Int? enPassantPosition;
 
-        public ChessBoard()
+        public void InitBoard()
         {
-            InitBoard();
-        }
-
-        private void InitBoard()
-        {
-            ChessFactory[] piecesSetup = { new RookPieceFactory(), new KnightPieceFactory(), new BishopPieceFactory(), new QueenPieceFactory(), new KingPieceFactory(), new BishopPieceFactory(), new KnightPieceFactory(), new RookPieceFactory() };
-            ChessFactory pawnFactory = new PawnPieceFactory();
-            int id = 1;
+            ChessFigures[] initialSetup = { ChessFigures.Rook, ChessFigures.Knight, ChessFigures.Bishop, ChessFigures.Queen, ChessFigures.King, ChessFigures.Bishop, ChessFigures.Knight, ChessFigures.Rook };
+            ChessPieceFactory factory = new ChessPieceFactory();
             _board = new ChessPiece[BOARD_SIZE, BOARD_SIZE];
             for (int i = 0; i < BOARD_SIZE; i++)
             {
                 //White
-                _board[i, 0] = piecesSetup[i].CreateChessPiece(id++, new Vector2Int(i, 0), ChessPieceColor.White);
-                _board[i, 1] = pawnFactory.CreateChessPiece(id++, new Vector2Int(i, 1), ChessPieceColor.White);
+                _board[i, 0] = CreateChessPiece(factory, initialSetup[i], ChessPieceColor.White, i, new Vector2Int(i, 0));
+                _board[i, 1] = CreateChessPiece(factory, ChessFigures.Pawn, ChessPieceColor.White, i + BOARD_SIZE, new Vector2Int(i, 1));
                 //Black
-                _board[i, 6] = pawnFactory.CreateChessPiece(id++, new Vector2Int(i, 6), ChessPieceColor.Black);
-                _board[i, 7] = piecesSetup[i].CreateChessPiece(id++, new Vector2Int(i, 7), ChessPieceColor.Black);
+                _board[i, 6] = CreateChessPiece(factory, ChessFigures.Pawn, ChessPieceColor.Black, i + BOARD_SIZE * 3, new Vector2Int(i, 6));
+                _board[i, 7] = CreateChessPiece(factory, initialSetup[i], ChessPieceColor.Black, i + BOARD_SIZE * 2, new Vector2Int(i, 7));
             }
+        }
+
+        private ChessPiece CreateChessPiece(ChessPieceFactory factory, ChessFigures chessFifure, ChessPieceColor color, int id, Vector2Int position)
+        {
+            ChessPiece piece = factory.CreateChessPiece(chessFifure, color, id, position);
+            OnChessPieceCreate?.Invoke(piece, chessFifure);
+            return piece;
         }
 
         private bool PositionWithinBounds(Vector2Int position)

@@ -4,33 +4,75 @@ using UnityEngine;
 
 namespace Chess
 {
-    public class ChessManager
+    public class ChessManager : MonoBehaviour
     {
-        private Dictionary<ChessPieceColor, uint> _currentTurn; // int currentTurn?
+        [SerializeField]
+        private ChessPiecePrefabData _prefabData;
+        [SerializeField]
+        private GameObject _validMovesHighlight;
+        private uint _currentTurn;
+        private ChessBoard _board;
+        private ChessPieceMono _selectedPiece;
+        private List<GameObject> _validMovesHighlights;
 
-        private ChessManager()
+        public uint CurrentTurn => _currentTurn;
+
+
+        private void Start()
         {
-            _currentTurn = new Dictionary<ChessPieceColor, uint>(2)
-            {
-                [ChessPieceColor.White] = 1,
-                [ChessPieceColor.Black] = 1
-            };
+            _currentTurn = 1;
+            _validMovesHighlights = new List<GameObject>();
+            _board = new ChessBoard();
+            _board.OnChessPieceCreate += CreateChessPiece;
+            _board.InitBoard();
         }
-        #region Singleton
-        private static ChessManager _instance;
-        public static ChessManager Instance
+
+        private void OnDestroy()
         {
-            get
+            _board.OnChessPieceCreate -= CreateChessPiece;
+        }
+
+        private Vector3 TranslateBoardPositionToWorld(Vector2Int boardPosition)
+        {
+            return new Vector3(boardPosition.x, 0f, boardPosition.y) * 2f;
+        }
+
+        private void CreateChessPiece(ChessPiece piece, ChessFigures figure)
+        {
+
+            GameObject inst = Instantiate(_prefabData.GetPrefab(figure, piece.Color), transform);
+            inst.transform.position = TranslateBoardPositionToWorld(piece.Position);
+            ChessPieceMono mono = inst.AddComponent<ChessPieceMono>();
+            mono.Init(piece);
+            mono.OnChessPieceSelected += OnChessPieceSelected;
+        }
+
+        private void OnChessPieceSelected(ChessPieceMono obj)
+        {
+            ClearHighlight();
+            _selectedPiece = obj;
+            List<Vector2Int> validMoves = obj.ChessPiece.GetValidMoves(_board);
+            foreach (Vector2Int move in validMoves)
             {
-                _instance ??= new ChessManager();
-                return _instance;
+                Vector3 position = TranslateBoardPositionToWorld(move);
+                _validMovesHighlights.Add(Instantiate(_validMovesHighlight, position + Vector3.up * 0.001f, _validMovesHighlight.transform.rotation));
             }
         }
-        #endregion
 
-        public uint CurrentTurn(ChessPieceColor side)
+        private void ClearHighlight()
         {
-            return _currentTurn[side];
+            if (_validMovesHighlights.Count > 0)
+            {
+                for (int i = 0; i < _validMovesHighlights.Count; i++)
+                {
+                    Destroy(_validMovesHighlights[i]);
+                }
+            }
+            _validMovesHighlights.Clear();
+            if (_selectedPiece != null)
+            {
+                _selectedPiece.Deselect();
+            }
         }
     }
 }
