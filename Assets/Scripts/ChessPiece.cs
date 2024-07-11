@@ -102,9 +102,11 @@ namespace Chess
                     if (board.IsPositionEmpty(nextPosition))
                         validPositions.Add(nextPosition);
                     else
-                    if (board.IsOppenentAt(nextPosition, _color))
                     {
-                        validPositions.Add(nextPosition);
+                        if (board.IsOppenentAt(nextPosition, _color))
+                        {
+                            validPositions.Add(nextPosition);
+                        }
                         break;
                     }
                 }
@@ -158,9 +160,11 @@ namespace Chess
                     if (board.IsPositionEmpty(nextPosition))
                         validPositions.Add(nextPosition);
                     else
-                    if (board.IsOppenentAt(nextPosition, _color))
                     {
-                        validPositions.Add(nextPosition);
+                        if (board.IsOppenentAt(nextPosition, _color))
+                        {
+                            validPositions.Add(nextPosition);
+                        }
                         break;
                     }
                 }
@@ -187,9 +191,11 @@ namespace Chess
                     if (board.IsPositionEmpty(nextPosition))
                         validPositions.Add(nextPosition);
                     else
-                    if (board.IsOppenentAt(nextPosition, _color))
                     {
-                        validPositions.Add(nextPosition);
+                        if (board.IsOppenentAt(nextPosition, _color))
+                        {
+                            validPositions.Add(nextPosition);
+                        }
                         break;
                     }
                 }

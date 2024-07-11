@@ -13,7 +13,7 @@ namespace Chess
         private uint _currentTurn;
         private ChessBoard _board;
         private ChessPieceMono _selectedPiece;
-        private List<GameObject> _validMovesHighlights;
+        private List<ValidMoveHighlight> _validMovesHighlights;
 
         public uint CurrentTurn => _currentTurn;
 
@@ -21,7 +21,7 @@ namespace Chess
         private void Start()
         {
             _currentTurn = 1;
-            _validMovesHighlights = new List<GameObject>();
+            _validMovesHighlights = new List<ValidMoveHighlight>();
             _board = new ChessBoard();
             _board.OnChessPieceCreate += CreateChessPiece;
             _board.InitBoard();
@@ -55,8 +55,16 @@ namespace Chess
             foreach (Vector2Int move in validMoves)
             {
                 Vector3 position = TranslateBoardPositionToWorld(move);
-                _validMovesHighlights.Add(Instantiate(_validMovesHighlight, position + Vector3.up * 0.001f, _validMovesHighlight.transform.rotation));
+                GameObject highlightObject = Instantiate(_validMovesHighlight, position + Vector3.up * 0.001f, _validMovesHighlight.transform.rotation);
+                ValidMoveHighlight highlight = highlightObject.GetComponent<ValidMoveHighlight>();
+                highlight.OnValidMoveClick += OnValidMoveClick;
+                _validMovesHighlights.Add(highlight);
             }
+        }
+
+        private void OnValidMoveClick(ValidMoveHighlight obj)
+        {
+            throw new System.NotImplementedException();
         }
 
         private void ClearHighlight()
@@ -65,6 +73,7 @@ namespace Chess
             {
                 for (int i = 0; i < _validMovesHighlights.Count; i++)
                 {
+                    _validMovesHighlights[i].OnValidMoveClick -= OnValidMoveClick;
                     Destroy(_validMovesHighlights[i]);
                 }
             }

@@ -10,14 +10,15 @@ namespace Chess
         private ChessPiece _piece;
         private Outline _outline;
         private bool _isSelected = false;
-
+        private Color _selectedColor = Color.blue;
+        private Color _mouseOverColor = Color.HSVToRGB(113f / 255f, 1f, 1f);
         public ChessPiece ChessPiece { get { return _piece; } }
         public event Action<ChessPieceMono> OnChessPieceSelected;
 
         private void Start()
         {
             _outline = gameObject.AddComponent<Outline>();
-            _outline.OutlineColor = Color.HSVToRGB(113f / 255f, 1f, 1f);
+            _outline.OutlineColor = _mouseOverColor;
             _outline.OutlineWidth = 4f;
             _outline.enabled = false;
         }
@@ -38,6 +39,7 @@ namespace Chess
         private void OnMouseUpAsButton()
         {
             _isSelected = true;
+            _outline.OutlineColor = _selectedColor;
             OnChessPieceSelected?.Invoke(this);
         }
 
@@ -49,6 +51,7 @@ namespace Chess
         public void Deselect()
         {
             _isSelected = false;
+            _outline.OutlineColor = _mouseOverColor;
             _outline.enabled = false;
         }
     }
