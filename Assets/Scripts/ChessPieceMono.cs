@@ -10,10 +10,12 @@ namespace Chess
         private ChessPiece _piece;
         private Outline _outline;
         private bool _isSelected = false;
+        private bool _isMouseOver = false;
         private Color _selectedColor = Color.blue;
         private Color _mouseOverColor = Color.HSVToRGB(113f / 255f, 1f, 1f);
         public ChessPiece ChessPiece { get { return _piece; } }
         public event Action<ChessPieceMono> OnChessPieceSelected;
+        public event Action<ChessPieceMono> OnChessPieceDeselected;
 
         private void Start()
         {
@@ -35,6 +37,7 @@ namespace Chess
         private void OnMouseEnter()
         {
             _outline.enabled = true;
+            _isMouseOver = true;
         }
 
         private void OnMouseExit()
@@ -43,13 +46,21 @@ namespace Chess
             {
                 _outline.enabled = false;
             }
+            _isMouseOver = false;
         }
 
         private void OnMouseUpAsButton()
         {
-            _isSelected = true;
-            _outline.OutlineColor = _selectedColor;
-            OnChessPieceSelected?.Invoke(this);
+            _isSelected = !_isSelected;
+            if (_isSelected)
+            {
+                OnChessPieceSelected?.Invoke(this);
+            }
+            else
+            {
+                OnChessPieceDeselected?.Invoke(this);
+            }
+            CheckSelected();
         }
 
         public void Init(ChessPiece piece)
@@ -69,13 +80,16 @@ namespace Chess
             transform.position = BoardToWorldPosition(obj.Position);
         }
 
-
+        private void CheckSelected()
+        {
+            _outline.enabled = _isSelected | _isMouseOver;
+            _outline.OutlineColor = _isSelected ? _selectedColor : _mouseOverColor;
+        }
 
         public void Deselect()
         {
             _isSelected = false;
-            _outline.OutlineColor = _mouseOverColor;
-            _outline.enabled = false;
+            CheckSelected();
         }
 
         public Vector3 BoardToWorldPosition(Vector2Int boardPosition)

@@ -22,7 +22,7 @@ namespace Chess
             _position = position;
             _color = color;
         }
-        public void Move(Vector2Int boardPosition)
+        public virtual void Move(Vector2Int boardPosition)
         {
             Vector2Int previousPosition = _position;
             _position = boardPosition;
@@ -90,7 +90,6 @@ namespace Chess
                 if (board.IsOppenentAt(nextPosition, _color))
                 {
                     validPositions.Add(nextPosition);
-                    break;
                 }
             }
 

@@ -38,6 +38,12 @@ namespace Chess
             inst.transform.position = mono.BoardToWorldPosition(piece.Position);
             mono.Init(piece);
             mono.OnChessPieceSelected += OnChessPieceSelected;
+            mono.OnChessPieceDeselected += OnChessPieceDeselected;
+        }
+
+        private void OnChessPieceDeselected(ChessPieceMono obj)
+        {
+            ClearHighlight();
         }
 
         private void OnChessPieceSelected(ChessPieceMono obj)
