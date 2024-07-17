@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ namespace Chess
         protected readonly int _id;
         protected bool _hasMoved = false;
 
+        public event Action<ChessPiece, Vector2Int> OnMove;
+        public event Action<ChessPiece> OnCapture;
         public ChessPieceColor Color => _color;
         public Vector2Int Position => _position;
 
@@ -19,7 +22,17 @@ namespace Chess
             _position = position;
             _color = color;
         }
-
+        public void Move(Vector2Int boardPosition)
+        {
+            Vector2Int previousPosition = _position;
+            _position = boardPosition;
+            _hasMoved = true;
+            OnMove?.Invoke(this, previousPosition);
+        }
+        public void Captured()
+        {
+            OnCapture?.Invoke(this);
+        }
         public abstract List<Vector2Int> GetValidMoves(ChessBoard board);
 
     }
@@ -47,7 +60,7 @@ namespace Chess
             }
             //capture diagonally
             Vector2Int[] captureDirections = { oneStepForward + Vector2Int.left, oneStepForward + Vector2Int.right };
-            Vector2Int? enPassant = board.GetEnPassantPosition();
+            Vector2Int? enPassant = board.EnPassantPosition;
             foreach (Vector2Int capture in captureDirections)
             {
                 if (board.IsOppenentAt(capture, _color) || capture == enPassant)

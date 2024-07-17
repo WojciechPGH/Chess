@@ -23,6 +23,15 @@ namespace Chess
             _outline.enabled = false;
         }
 
+        private void OnDestroy()
+        {
+            if (_piece != null)
+            {
+                _piece.OnMove -= OnChessPieceMove;
+                _piece.OnCapture -= OnPieceCapture;
+            }
+        }
+
         private void OnMouseEnter()
         {
             _outline.enabled = true;
@@ -46,13 +55,32 @@ namespace Chess
         public void Init(ChessPiece piece)
         {
             _piece = piece;
+            _piece.OnMove += OnChessPieceMove;
+            _piece.OnCapture += OnPieceCapture;
         }
+
+        private void OnPieceCapture(ChessPiece obj)
+        {
+            Destroy(gameObject);
+        }
+
+        private void OnChessPieceMove(ChessPiece obj, Vector2Int previousPosition)
+        {
+            transform.position = BoardToWorldPosition(obj.Position);
+        }
+
+
 
         public void Deselect()
         {
             _isSelected = false;
             _outline.OutlineColor = _mouseOverColor;
             _outline.enabled = false;
+        }
+
+        public Vector3 BoardToWorldPosition(Vector2Int boardPosition)
+        {
+            return new Vector3(boardPosition.x, 0f, boardPosition.y) * 2f;
         }
     }
 }

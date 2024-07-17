@@ -14,9 +14,7 @@ namespace Chess
         private ChessBoard _board;
         private ChessPieceMono _selectedPiece;
         private List<ValidMoveHighlight> _validMovesHighlights;
-
         public uint CurrentTurn => _currentTurn;
-
 
         private void Start()
         {
@@ -32,17 +30,12 @@ namespace Chess
             _board.OnChessPieceCreate -= CreateChessPiece;
         }
 
-        private Vector3 TranslateBoardPositionToWorld(Vector2Int boardPosition)
-        {
-            return new Vector3(boardPosition.x, 0f, boardPosition.y) * 2f;
-        }
-
         private void CreateChessPiece(ChessPiece piece, ChessFigures figure)
         {
 
             GameObject inst = Instantiate(_prefabData.GetPrefab(figure, piece.Color), transform);
-            inst.transform.position = TranslateBoardPositionToWorld(piece.Position);
             ChessPieceMono mono = inst.AddComponent<ChessPieceMono>();
+            inst.transform.position = mono.BoardToWorldPosition(piece.Position);
             mono.Init(piece);
             mono.OnChessPieceSelected += OnChessPieceSelected;
         }
@@ -54,9 +47,10 @@ namespace Chess
             List<Vector2Int> validMoves = obj.ChessPiece.GetValidMoves(_board);
             foreach (Vector2Int move in validMoves)
             {
-                Vector3 position = TranslateBoardPositionToWorld(move);
+                Vector3 position = obj.BoardToWorldPosition(move);
                 GameObject highlightObject = Instantiate(_validMovesHighlight, position + Vector3.up * 0.001f, _validMovesHighlight.transform.rotation);
-                ValidMoveHighlight highlight = highlightObject.GetComponent<ValidMoveHighlight>();
+                ValidMoveHighlight highlight = highlightObject.AddComponent<ValidMoveHighlight>();
+                highlight.BoardPosition = move;
                 highlight.OnValidMoveClick += OnValidMoveClick;
                 _validMovesHighlights.Add(highlight);
             }
@@ -64,7 +58,10 @@ namespace Chess
 
         private void OnValidMoveClick(ValidMoveHighlight obj)
         {
-            throw new System.NotImplementedException();
+            Debug.Log("Valid move click");
+            _selectedPiece.ChessPiece.Move(obj.BoardPosition);
+            ClearHighlight();
+            //next turn
         }
 
         private void ClearHighlight()
@@ -74,13 +71,14 @@ namespace Chess
                 for (int i = 0; i < _validMovesHighlights.Count; i++)
                 {
                     _validMovesHighlights[i].OnValidMoveClick -= OnValidMoveClick;
-                    Destroy(_validMovesHighlights[i]);
+                    Destroy(_validMovesHighlights[i].gameObject);
                 }
             }
             _validMovesHighlights.Clear();
             if (_selectedPiece != null)
             {
                 _selectedPiece.Deselect();
+                _selectedPiece = null;
             }
         }
     }
