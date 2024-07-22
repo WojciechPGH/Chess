@@ -10,32 +10,34 @@ namespace Chess
         private Vector2Int? _enPassantPosition;
         private PawnPiece _twoStepLastTurn;
         private List<ChessPiece> _capturedPieces;
+        private ChessPieceFactory _factory;
         public const byte BOARD_SIZE = 8;
 
         public Vector2Int? EnPassantPosition { get => _enPassantPosition; set => _enPassantPosition = value; }
 
         public event Action<ChessPiece, ChessFigures> OnChessPieceCreate;
+        public event Action<PawnPiece> OnPawnPromote;
 
         public void InitBoard()
         {
             ChessFigures[] initialSetup = { ChessFigures.Rook, ChessFigures.Knight, ChessFigures.Bishop, ChessFigures.Queen, ChessFigures.King, ChessFigures.Bishop, ChessFigures.Knight, ChessFigures.Rook };
-            ChessPieceFactory factory = new ChessPieceFactory();
+            _factory = new ChessPieceFactory();
             _capturedPieces = new List<ChessPiece>();
             _board = new ChessPiece[BOARD_SIZE, BOARD_SIZE];
             for (int i = 0; i < BOARD_SIZE; i++)
             {
                 //White
-                _board[i, 0] = CreateChessPiece(factory, initialSetup[i], ChessPieceColor.White, i, new Vector2Int(i, 0));
-                _board[i, 1] = CreateChessPiece(factory, ChessFigures.Pawn, ChessPieceColor.White, i + BOARD_SIZE, new Vector2Int(i, 1));
+                _board[i, 0] = CreateChessPiece(initialSetup[i], ChessPieceColor.White, i, new Vector2Int(i, 0));
+                _board[i, 1] = CreateChessPiece(ChessFigures.Pawn, ChessPieceColor.White, i + BOARD_SIZE, new Vector2Int(i, 1));
                 //Black
-                _board[i, 6] = CreateChessPiece(factory, ChessFigures.Pawn, ChessPieceColor.Black, i + BOARD_SIZE * 3, new Vector2Int(i, 6));
-                _board[i, 7] = CreateChessPiece(factory, initialSetup[i], ChessPieceColor.Black, i + BOARD_SIZE * 2, new Vector2Int(i, 7));
+                _board[i, 6] = CreateChessPiece(ChessFigures.Pawn, ChessPieceColor.Black, i + BOARD_SIZE * 3, new Vector2Int(i, 6));
+                _board[i, 7] = CreateChessPiece(initialSetup[i], ChessPieceColor.Black, i + BOARD_SIZE * 2, new Vector2Int(i, 7));
             }
         }
 
-        private ChessPiece CreateChessPiece(ChessPieceFactory factory, ChessFigures chessFifure, ChessPieceColor color, int id, Vector2Int position)
+        private ChessPiece CreateChessPiece(ChessFigures chessFifure, ChessPieceColor color, int id, Vector2Int position)
         {
-            ChessPiece piece = factory.CreateChessPiece(chessFifure, color, id, position);
+            ChessPiece piece = _factory.CreateChessPiece(chessFifure, color, id, position);
             OnChessPieceCreate?.Invoke(piece, chessFifure);
             piece.OnMove += piece switch
             {
@@ -89,6 +91,15 @@ namespace Chess
                 CheckEnPassantCapture(pawn);
                 ResetEnPassantState();
             }
+            HandlePawnPromotion(pawn);
+        }
+
+        private void HandlePawnPromotion(PawnPiece pawn)
+        {
+            if ((pawn.Color == ChessPieceColor.White && pawn.Position.y == 7) || (pawn.Color == ChessPieceColor.Black && pawn.Position.y == 0))
+            {
+                OnPawnPromote?.Invoke(pawn);
+            }
         }
 
         private void SetEnPassantPosition(PawnPiece pawn, Vector2Int previousPosition)
@@ -128,6 +139,12 @@ namespace Chess
                 if (_board[position.x, position.y].Color != pieceColor) return true;
             }
             return false;
+        }
+
+        public void OnPawnPromoted(PawnPiece pawn, ChessFigures figure)
+        {
+            pawn.Destroy();
+            _board[pawn.Position.x, pawn.Position.y] = CreateChessPiece(figure, pawn.Color, pawn.ID, pawn.Position);
         }
     }
 }

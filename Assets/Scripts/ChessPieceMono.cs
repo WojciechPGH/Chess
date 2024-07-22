@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Chess
@@ -29,7 +27,7 @@ namespace Chess
         {
             if (_piece != null)
             {
-                _piece.OnMove -= OnChessPieceMove;
+                _piece.OnMove -= OnPieceMove;
                 _piece.OnCapture -= OnPieceCapture;
             }
         }
@@ -66,8 +64,14 @@ namespace Chess
         public void Init(ChessPiece piece)
         {
             _piece = piece;
-            _piece.OnMove += OnChessPieceMove;
+            _piece.OnMove += OnPieceMove;
             _piece.OnCapture += OnPieceCapture;
+            _piece.OnDestroy += OnPieceDestroy;
+        }
+
+        private void OnPieceDestroy(ChessPiece obj)
+        {
+            Destroy(gameObject);
         }
 
         private void OnPieceCapture(ChessPiece obj)
@@ -75,7 +79,7 @@ namespace Chess
             Destroy(gameObject);
         }
 
-        private void OnChessPieceMove(ChessPiece obj, Vector2Int previousPosition)
+        private void OnPieceMove(ChessPiece obj, Vector2Int previousPosition)
         {
             transform.position = BoardToWorldPosition(obj.Position);
         }

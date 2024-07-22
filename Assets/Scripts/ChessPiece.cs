@@ -13,9 +13,11 @@ namespace Chess
 
         public event Action<ChessPiece, Vector2Int> OnMove;
         public event Action<ChessPiece> OnCapture;
+        public event Action<ChessPiece> OnDestroy;
+
         public ChessPieceColor Color => _color;
         public Vector2Int Position => _position;
-
+        public int ID => _id;
         public ChessPiece(ChessPieceColor color, int id, Vector2Int position)
         {
             _id = id;
@@ -32,6 +34,10 @@ namespace Chess
         public void Captured()
         {
             OnCapture?.Invoke(this);
+        }
+        public void Destroy()
+        {
+            OnDestroy?.Invoke(this);
         }
         public abstract List<Vector2Int> GetValidMoves(ChessBoard board);
 

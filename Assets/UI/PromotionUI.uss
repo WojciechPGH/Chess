@@ -1,0 +1,4 @@
+.PromotionBtn {
+    -unity-font-style: normal;
+    font-size: 48px;
+}
