@@ -73,11 +73,6 @@ namespace Chess
             _board[piece.Position.x, piece.Position.y] = piece;
         }
 
-        private void ResetEnPassantState()
-        {
-            _twoStepLastTurn = null;
-            _enPassantPosition = null;
-        }
 
         private void HandlePawnSpecialMoves(PawnPiece pawn, Vector2Int previousPosition)
         {
@@ -94,14 +89,6 @@ namespace Chess
             HandlePawnPromotion(pawn);
         }
 
-        private void HandlePawnPromotion(PawnPiece pawn)
-        {
-            if ((pawn.Color == ChessPieceColor.White && pawn.Position.y == 7) || (pawn.Color == ChessPieceColor.Black && pawn.Position.y == 0))
-            {
-                OnPawnPromote?.Invoke(pawn);
-            }
-        }
-
         private void SetEnPassantPosition(PawnPiece pawn, Vector2Int previousPosition)
         {
             Vector2Int enPPos = previousPosition;
@@ -115,9 +102,21 @@ namespace Chess
             if (_twoStepLastTurn != null && pawn.Position == _enPassantPosition)
             {
                 _twoStepLastTurn.Captured();
+                _board[_twoStepLastTurn.Position.x, _twoStepLastTurn.Position.y] = null;
             }
         }
-
+        private void ResetEnPassantState()
+        {
+            _twoStepLastTurn = null;
+            _enPassantPosition = null;
+        }
+        private void HandlePawnPromotion(PawnPiece pawn)
+        {
+            if ((pawn.Color == ChessPieceColor.White && pawn.Position.y == 7) || (pawn.Color == ChessPieceColor.Black && pawn.Position.y == 0))
+            {
+                OnPawnPromote?.Invoke(pawn);
+            }
+        }
 
         private bool PositionWithinBounds(Vector2Int position)
         {
