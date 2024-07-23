@@ -25,11 +25,13 @@ namespace Chess
             _position = position;
             _color = color;
         }
-        public virtual void Move(Vector2Int boardPosition)
+        public virtual void Move(ChessBoard board, Vector2Int boardPosition)
         {
             Vector2Int previousPosition = _position;
             _position = boardPosition;
             _hasMoved = true;
+            board.MovePieceOnBoard(this, previousPosition);
+            PawnPiece.ResetEnPassantState();
             OnMove?.Invoke(this, previousPosition);
         }
         public void Captured()
@@ -41,12 +43,19 @@ namespace Chess
             OnDestroy?.Invoke(this);
         }
         public abstract List<Vector2Int> GetValidMoves(ChessBoard board);
-
+        protected void InvokeMoveEvent(ChessPiece piece, Vector2Int previousPosition) => OnMove?.Invoke(piece, previousPosition);
     }
 
     public class PawnPiece : ChessPiece
     {
-        public PawnPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
+        private readonly Dictionary<ChessPieceColor, int> _promotionLine;
+        private static PawnPiece _twoStepLastTurn;
+        private static Vector2Int? _enPassantPosition;
+
+        public PawnPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position)
+        {
+            _promotionLine ??= new Dictionary<ChessPieceColor, int> { { ChessPieceColor.Black, 0 }, { ChessPieceColor.White, 7 } };
+        }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -67,22 +76,81 @@ namespace Chess
             }
             //capture diagonally
             Vector2Int[] captureDirections = { oneStepForward + Vector2Int.left, oneStepForward + Vector2Int.right };
-            Vector2Int? enPassant = board.EnPassantPosition;
             foreach (Vector2Int capture in captureDirections)
             {
-                if (board.IsOppenentAt(capture, _color) || capture == enPassant)
+                if (board.IsOppenentAt(capture, _color) || capture == _enPassantPosition)
                 {
                     validMoves.Add(capture);
                 }
             }
             return validMoves;
         }
+
+        public override void Move(ChessBoard board, Vector2Int boardPosition)
+        {
+            Vector2Int previousPosition = _position;
+            _position = boardPosition;
+            _hasMoved = true;
+            board.MovePieceOnBoard(this, previousPosition);
+            InvokeMoveEvent(this, previousPosition);
+            //base.Move(board, boardPosition);
+            HandleMovement(previousPosition);
+            HandlePromotion(board);
+        }
+
+        private void HandleMovement(Vector2Int previousPosition)
+        {
+            int deltaY = previousPosition.y - _position.y;
+            if (deltaY == 2 || deltaY == -2)
+            {
+                SetEnPassantPosition(previousPosition);
+            }
+            else
+            {
+                CheckEnPassantCapture();
+                ResetEnPassantState();
+            }
+        }
+        private void SetEnPassantPosition(Vector2Int previousPosition)
+        {
+            Vector2Int enPPos = previousPosition;
+            enPPos.y -= (previousPosition.y - _position.y) / 2;
+            _enPassantPosition = enPPos;
+            _twoStepLastTurn = this;
+        }
+
+        private void CheckEnPassantCapture()
+        {
+            if (_twoStepLastTurn != null && _position == _enPassantPosition)
+            {
+                _twoStepLastTurn.Captured();
+            }
+        }
+
+        private void HandlePromotion(ChessBoard board)
+        {
+            if (_position.y == _promotionLine[_color])
+                board.PromotePawn(this);
+        }
+        public static void ResetEnPassantState()
+        {
+            _twoStepLastTurn = null;
+            _enPassantPosition = null;
+        }
+
     }
     public class KingPiece : ChessPiece
     {
         private bool _inCheck = false;
         public bool IsInCheck => _inCheck;
         public KingPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
+
+        public override void Move(ChessBoard board, Vector2Int boardPosition)
+        {
+            Vector2Int previousPosition = _position;
+            base.Move(board, boardPosition);
+            HandleCastling(board, previousPosition);
+        }
 
         public List<Vector2Int> GetAttackMoves(ChessBoard board)
         {
@@ -119,6 +187,22 @@ namespace Chess
                     validPositions.Add(_position - (Vector2Int.right * 2));
             }
             return validPositions;
+        }
+
+        private void HandleCastling(ChessBoard board, Vector2Int previousPosition)
+        {
+            int deltaX = _position.x - previousPosition.x;
+            //Castling
+            if (deltaX == 2 || deltaX == -2)
+            {
+                bool kingSide = deltaX == 2;
+                ChessPiece rook = kingSide == true ? board.GetPiece(7, _position.y) : board.GetPiece(0, _position.y);
+                if (rook != null && rook is RookPiece)
+                {
+                    Vector2Int rookPosition = (_position + previousPosition) / 2;
+                    rook.Move(board, rookPosition);
+                }
+            }
         }
 
         private bool CanCastle(ChessBoard board, bool kingSide)

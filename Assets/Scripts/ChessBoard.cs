@@ -9,13 +9,9 @@ namespace Chess
     public class ChessBoard
     {
         private ChessPiece[,] _board;
-        private Vector2Int? _enPassantPosition;
-        private PawnPiece _twoStepLastTurn;
         private List<ChessPiece> _capturedPieces;
         private ChessPieceFactory _factory;
         public const byte BOARD_SIZE = 8;
-
-        public Vector2Int? EnPassantPosition { get => _enPassantPosition; set => _enPassantPosition = value; }
 
         public event Action<ChessPiece, ChessFigures> OnChessPieceCreate;
         public event Action<PawnPiece> OnPawnPromote;
@@ -41,12 +37,12 @@ namespace Chess
         {
             ChessPiece piece = _factory.CreateChessPiece(chessFifure, color, id, position);
             OnChessPieceCreate?.Invoke(piece, chessFifure);
-            piece.OnMove += piece switch
-            {
-                PawnPiece => OnPawnMove,
-                KingPiece => OnKingMove,
-                _ => OnChessPieceMove
-            };
+            //piece.OnMove += piece switch
+            //{
+            //    PawnPiece => OnPawnMove,
+            //    KingPiece => OnKingMove,
+            //    _ => OnChessPieceMove
+            //};
             piece.OnCapture += OnChessPieceCapture;
             return piece;
         }
@@ -54,93 +50,14 @@ namespace Chess
         private void OnChessPieceCapture(ChessPiece piece)
         {
             _capturedPieces.Add(_board[piece.Position.x, piece.Position.y]);
+            _board[piece.Position.x, piece.Position.y] = null;
         }
 
-        private void OnChessPieceMove(ChessPiece piece, Vector2Int previousPosition)
-        {
-            MovePieceOnBoard(piece, previousPosition);
-            ResetEnPassantState();
-        }
-
-        private void OnPawnMove(ChessPiece piece, Vector2Int previousPosition)
-        {
-            PawnPiece pawn = piece as PawnPiece;
-            MovePieceOnBoard(pawn, previousPosition);
-            HandlePawnMoves(pawn, previousPosition);
-            HandlePawnPromotion(pawn);
-        }
-
-        private void OnKingMove(ChessPiece piece, Vector2Int previousPosition)
-        {
-            KingPiece king = piece as KingPiece;
-            MovePieceOnBoard(king, previousPosition);
-            HandleCastling(king, previousPosition);
-        }
-
-
-        private void MovePieceOnBoard(ChessPiece piece, Vector2Int previousPosition)
+        public void MovePieceOnBoard(ChessPiece piece, Vector2Int previousPosition)
         {
             _board[previousPosition.x, previousPosition.y] = null;
             _board[piece.Position.x, piece.Position.y]?.Captured();
             _board[piece.Position.x, piece.Position.y] = piece;
-        }
-        private void HandleCastling(KingPiece king, Vector2Int previousPosition)
-        {
-            int deltaX = king.Position.x - previousPosition.x;
-            //Castling
-            if (deltaX == 2 || deltaX == -2)
-            {
-                bool kingSide = deltaX == 2;
-                ChessPiece rook = kingSide == true ? _board[7, king.Position.y] : _board[0, king.Position.y];
-                if (rook != null && rook is RookPiece)
-                {
-                    Vector2Int rookPosition = (king.Position + previousPosition) / 2;
-                    rook.Move(rookPosition);
-                }
-            }
-        }
-
-        private void HandlePawnMoves(PawnPiece pawn, Vector2Int previousPosition)
-        {
-            int deltaY = Mathf.Abs(previousPosition.y - pawn.Position.y);
-            if (deltaY == 2)
-            {
-                SetEnPassantPosition(pawn, previousPosition);
-            }
-            else
-            {
-                CheckEnPassantCapture(pawn);
-                ResetEnPassantState();
-            }
-        }
-
-        private void SetEnPassantPosition(PawnPiece pawn, Vector2Int previousPosition)
-        {
-            Vector2Int enPPos = previousPosition;
-            enPPos.y -= (previousPosition.y - pawn.Position.y) / 2;
-            _enPassantPosition = enPPos;
-            _twoStepLastTurn = pawn;
-        }
-
-        private void CheckEnPassantCapture(PawnPiece pawn)
-        {
-            if (_twoStepLastTurn != null && pawn.Position == _enPassantPosition)
-            {
-                _twoStepLastTurn.Captured();
-                _board[_twoStepLastTurn.Position.x, _twoStepLastTurn.Position.y] = null;
-            }
-        }
-        private void ResetEnPassantState()
-        {
-            _twoStepLastTurn = null;
-            _enPassantPosition = null;
-        }
-        private void HandlePawnPromotion(PawnPiece pawn)
-        {
-            if ((pawn.Color == ChessPieceColor.White && pawn.Position.y == 7) || (pawn.Color == ChessPieceColor.Black && pawn.Position.y == 0))
-            {
-                OnPawnPromote?.Invoke(pawn);
-            }
         }
 
         private bool PositionWithinBounds(Vector2Int position)
@@ -197,6 +114,11 @@ namespace Chess
         {
             pawn.Destroy();
             _board[pawn.Position.x, pawn.Position.y] = CreateChessPiece(figure, pawn.Color, pawn.ID, pawn.Position);
+        }
+
+        public void PromotePawn(PawnPiece pawn)
+        {
+            OnPawnPromote?.Invoke(pawn);
         }
     }
 }

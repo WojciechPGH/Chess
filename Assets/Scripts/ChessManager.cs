@@ -69,10 +69,10 @@ namespace Chess
             }
         }
 
-        private void OnValidMoveClick(ValidMoveHighlight obj)
+        private void OnValidMoveClick(ValidMoveHighlight highlight)
         {
             Debug.Log("Set next turn!");
-            _selectedPiece.ChessPiece.Move(obj.BoardPosition);
+            _selectedPiece.ChessPiece.Move(_board, highlight.BoardPosition);
             ClearHighlight();
             //next turn
         }
