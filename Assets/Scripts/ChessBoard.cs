@@ -1,6 +1,8 @@
+using Codice.CM.Client.Differences;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Chess
 {
@@ -42,6 +44,7 @@ namespace Chess
             piece.OnMove += piece switch
             {
                 PawnPiece => OnPawnMove,
+                KingPiece => OnKingMove,
                 _ => OnChessPieceMove
             };
             piece.OnCapture += OnChessPieceCapture;
@@ -59,12 +62,21 @@ namespace Chess
             ResetEnPassantState();
         }
 
-        private void OnPawnMove(ChessPiece pawn, Vector2Int previousPosition)
+        private void OnPawnMove(ChessPiece piece, Vector2Int previousPosition)
         {
+            PawnPiece pawn = piece as PawnPiece;
             MovePieceOnBoard(pawn, previousPosition);
-            HandlePawnSpecialMoves(pawn as PawnPiece, previousPosition);
-            //promotion logic
+            HandlePawnMoves(pawn, previousPosition);
+            HandlePawnPromotion(pawn);
         }
+
+        private void OnKingMove(ChessPiece piece, Vector2Int previousPosition)
+        {
+            KingPiece king = piece as KingPiece;
+            MovePieceOnBoard(king, previousPosition);
+            HandleCastling(king, previousPosition);
+        }
+
 
         private void MovePieceOnBoard(ChessPiece piece, Vector2Int previousPosition)
         {
@@ -72,9 +84,23 @@ namespace Chess
             _board[piece.Position.x, piece.Position.y]?.Captured();
             _board[piece.Position.x, piece.Position.y] = piece;
         }
+        private void HandleCastling(KingPiece king, Vector2Int previousPosition)
+        {
+            int deltaX = king.Position.x - previousPosition.x;
+            //Castling
+            if (deltaX == 2 || deltaX == -2)
+            {
+                bool kingSide = deltaX == 2;
+                ChessPiece rook = kingSide == true ? _board[7, king.Position.y] : _board[0, king.Position.y];
+                if (rook != null && rook is RookPiece)
+                {
+                    Vector2Int rookPosition = (king.Position + previousPosition) / 2;
+                    rook.Move(rookPosition);
+                }
+            }
+        }
 
-
-        private void HandlePawnSpecialMoves(PawnPiece pawn, Vector2Int previousPosition)
+        private void HandlePawnMoves(PawnPiece pawn, Vector2Int previousPosition)
         {
             int deltaY = Mathf.Abs(previousPosition.y - pawn.Position.y);
             if (deltaY == 2)
@@ -86,7 +112,6 @@ namespace Chess
                 CheckEnPassantCapture(pawn);
                 ResetEnPassantState();
             }
-            HandlePawnPromotion(pawn);
         }
 
         private void SetEnPassantPosition(PawnPiece pawn, Vector2Int previousPosition)
@@ -138,6 +163,34 @@ namespace Chess
                 if (_board[position.x, position.y].Color != pieceColor) return true;
             }
             return false;
+        }
+
+        public bool IsUnderAttack(Vector2Int position, ChessPieceColor pieceColor)
+        {
+            foreach (ChessPiece piece in _board)
+            {
+                if (piece != null && piece.Color != pieceColor)
+                {
+                    List<Vector2Int> validMoves;
+                    validMoves = (piece is KingPiece) ? (piece as KingPiece).GetAttackMoves(this) : piece.GetValidMoves(this);
+                    if (validMoves.Contains(position)) return true;
+                }
+            }
+            return false;
+        }
+
+        public ChessPiece GetPiece(Vector2Int position)
+        {
+            if (PositionWithinBounds(position))
+                return _board[position.x, position.y];
+            return null;
+        }
+
+        public ChessPiece GetPiece(int x, int y)
+        {
+            if (PositionWithinBounds(new Vector2Int(x, y)))
+                return _board[x, y];
+            return null;
         }
 
         public void OnPawnPromoted(PawnPiece pawn, ChessFigures figure)

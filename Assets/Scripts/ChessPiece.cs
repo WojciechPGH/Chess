@@ -18,6 +18,7 @@ namespace Chess
         public ChessPieceColor Color => _color;
         public Vector2Int Position => _position;
         public int ID => _id;
+        public bool HasMoved => _hasMoved;
         public ChessPiece(ChessPieceColor color, int id, Vector2Int position)
         {
             _id = id;
@@ -79,7 +80,24 @@ namespace Chess
     }
     public class KingPiece : ChessPiece
     {
+        private bool _inCheck = false;
+        public bool IsInCheck => _inCheck;
         public KingPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
+
+        public List<Vector2Int> GetAttackMoves(ChessBoard board)
+        {
+            List<Vector2Int> validPositions = new List<Vector2Int>();
+            Vector2Int[] directions = { Vector2Int.left, Vector2Int.right, Vector2Int.up, Vector2Int.down, Vector2Int.one, -Vector2Int.one, Vector2Int.left + Vector2Int.up, Vector2Int.right + Vector2Int.down };
+            Vector2Int direction, nextPosition;
+            for (int dir = 0; dir < directions.Length; dir++)
+            {
+                direction = directions[dir];
+                nextPosition = _position + direction;
+                if ((!_inCheck) && (board.IsPositionEmpty(nextPosition) || board.IsOppenentAt(nextPosition, _color)))
+                    validPositions.Add(nextPosition);
+            }
+            return validPositions;
+        }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -90,16 +108,32 @@ namespace Chess
             {
                 direction = directions[dir];
                 nextPosition = _position + direction;
-                if (board.IsPositionEmpty(nextPosition))
+                if (!board.IsUnderAttack(nextPosition, _color) && (board.IsPositionEmpty(nextPosition) || board.IsOppenentAt(nextPosition, _color)))
                     validPositions.Add(nextPosition);
-                else
-                if (board.IsOppenentAt(nextPosition, _color))
-                {
-                    validPositions.Add(nextPosition);
-                }
             }
-
+            if (_hasMoved == false && !_inCheck)
+            {
+                if (CanCastle(board, true) == true)
+                    validPositions.Add(_position + Vector2Int.right * 2);
+                if (CanCastle(board, false) == true)
+                    validPositions.Add(_position - (Vector2Int.right * 2));
+            }
             return validPositions;
+        }
+
+        private bool CanCastle(ChessBoard board, bool kingSide)
+        {
+            ChessPiece rook = kingSide == true ? board.GetPiece(7, _position.y) : board.GetPiece(0, _position.y);
+            if (rook == null || rook is not RookPiece || rook.HasMoved == true) return false;
+            int startX = (kingSide == true ? _position.x : rook.Position.x) + 1;
+            Vector2Int positionCheck = new Vector2Int(startX, _position.y);
+            for (int i = startX; i < startX + 2; i++)
+            {
+                positionCheck.x = i;
+                if (!board.IsPositionEmpty(positionCheck) || board.IsUnderAttack(positionCheck, _color))
+                    return false;
+            }
+            return true;
         }
     }
     public class QueenPiece : ChessPiece
