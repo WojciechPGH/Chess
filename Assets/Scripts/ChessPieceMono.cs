@@ -9,11 +9,13 @@ namespace Chess
         private Outline _outline;
         private bool _isSelected = false;
         private bool _isMouseOver = false;
+        private bool _isMyTurn = false;
         private Color _selectedColor = Color.blue;
         private Color _mouseOverColor = Color.HSVToRGB(113f / 255f, 1f, 1f);
         public ChessPiece ChessPiece { get { return _piece; } }
         public event Action<ChessPieceMono> OnChessPieceSelected;
         public event Action<ChessPieceMono> OnChessPieceDeselected;
+        public event Action<ChessPieceMono> OnDestroyEvent;
 
         private void Start()
         {
@@ -30,12 +32,22 @@ namespace Chess
                 _piece.OnMove -= OnPieceMove;
                 _piece.OnCapture -= OnPieceCapture;
             }
+            OnDestroyEvent?.Invoke(this);
         }
 
         private void OnMouseEnter()
         {
-            _outline.enabled = true;
-            _isMouseOver = true;
+            if (_isMyTurn)
+            {
+                _outline.enabled = true;
+                _isMouseOver = true;
+            }
+        }
+
+        private void OnMouseOver()
+        {
+            if (_isMyTurn)
+                _isMouseOver = true;
         }
 
         private void OnMouseExit()
@@ -49,16 +61,19 @@ namespace Chess
 
         private void OnMouseUpAsButton()
         {
-            _isSelected = !_isSelected;
-            if (_isSelected)
+            if (_isMyTurn)
             {
-                OnChessPieceSelected?.Invoke(this);
+                _isSelected = !_isSelected;
+                if (_isSelected)
+                {
+                    OnChessPieceSelected?.Invoke(this);
+                }
+                else
+                {
+                    OnChessPieceDeselected?.Invoke(this);
+                }
+                CheckSelected();
             }
-            else
-            {
-                OnChessPieceDeselected?.Invoke(this);
-            }
-            CheckSelected();
         }
 
         public void Init(ChessPiece piece)
@@ -67,6 +82,17 @@ namespace Chess
             _piece.OnMove += OnPieceMove;
             _piece.OnCapture += OnPieceCapture;
             _piece.OnDestroy += OnPieceDestroy;
+        }
+
+        public void TurnChanged(IGameState gameState)
+        {
+            _isSelected = false;
+            _isMyTurn = gameState switch
+            {
+                WhiteTurnState whiteTurn => whiteTurn.TurnColor == _piece.Color,
+                BlackTurnState blackTurn => blackTurn.TurnColor == _piece.Color,
+                _ => false
+            };
         }
 
         private void OnPieceDestroy(ChessPiece obj)

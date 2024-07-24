@@ -11,7 +11,7 @@ namespace Chess
         private VisualElement _root;
         private readonly string _btnClassName = "PromotionBtn";
 
-        public event Action<PawnPiece, ChessFigures> OnPawnPromoted;
+        public event Action<PawnPiece, ChessFigures> OnUIClose;
         private void Awake()
         {
             _UIPromotion = GetComponent<UIDocument>();
@@ -43,7 +43,7 @@ namespace Chess
                 "BtnQueen" => ChessFigures.Queen,
                 _ => ChessFigures.Pawn,
             };
-            OnPawnPromoted?.Invoke(_pawn, figure);
+            OnUIClose?.Invoke(_pawn, figure);
             _pawn = null;
             _UIPromotion.enabled = false;
         }
