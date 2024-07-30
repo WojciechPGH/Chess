@@ -1,17 +1,24 @@
 namespace Chess
 {
-    public class BlackTurnState : IGameState
+    public class BlackTurnState : ITurnState
     {
-        private readonly ChessPieceColor _color = ChessPieceColor.Black;
+        private readonly ChessPieceColor _color;
+        private ITurnState _nextTurn = null;
+
+        public BlackTurnState(ChessPieceColor color)
+        {
+            _color = color;
+        }
+
         public ChessPieceColor TurnColor => _color;
-        public void Enter()
+        public ITurnState NextTurn => _nextTurn;
+
+        public void SetNextTurnState(ITurnState nextTurn)
         {
-
+            _nextTurn ??= nextTurn;
         }
+        public void Enter() { }
 
-        public void Exit()
-        {
-
-        }
+        public void Exit() { }
     }
 }

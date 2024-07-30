@@ -35,7 +35,7 @@ namespace Chess
             Vector2Int[] captureDirections = { oneStepForward + Vector2Int.left, oneStepForward + Vector2Int.right };
             foreach (Vector2Int capture in captureDirections)
             {
-                if (board.IsOppenentAt(capture, _color) || capture == _enPassantPosition)
+                if ((board.IsOppenentAt(capture, _color) || capture == _enPassantPosition))
                 {
                     validMoves.Add(capture);
                 }
@@ -48,9 +48,7 @@ namespace Chess
             Vector2Int previousPosition = _position;
             _position = boardPosition;
             _hasMoved = true;
-            board.MovePieceOnBoard(this, previousPosition);
             InvokeMoveEvent(this, previousPosition);
-            //base.Move(board, boardPosition);
             HandleMovement(previousPosition);
             HandlePromotion(board);
         }

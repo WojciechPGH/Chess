@@ -87,12 +87,7 @@ namespace Chess
         public void TurnChanged(IGameState gameState)
         {
             _isSelected = false;
-            _isMyTurn = gameState switch
-            {
-                WhiteTurnState whiteTurn => whiteTurn.TurnColor == _piece.Color,
-                BlackTurnState blackTurn => blackTurn.TurnColor == _piece.Color,
-                _ => false
-            };
+            _isMyTurn = gameState is ITurnState turnState && turnState.TurnColor == _piece.Color;
         }
 
         private void OnPieceDestroy(ChessPiece obj)

@@ -22,7 +22,19 @@ namespace Chess
 
     public class PawnPromotionState : IGameState
     {
-        public void Enter() { }
+        private PawnPromotionUIHandler _promotionUIHandler;
+        private PawnPiece _pawn;
+        private PawnPromotionState() { }
+        public PawnPromotionState(PawnPromotionUIHandler promotionUIHandler, PawnPiece pawn)
+        {
+            _promotionUIHandler = promotionUIHandler;
+            _pawn = pawn;
+        }
+
+        public void Enter() 
+        {
+            _promotionUIHandler.OnPawnPromotion(_pawn);
+        }
         public void Exit() { }
     }
 }

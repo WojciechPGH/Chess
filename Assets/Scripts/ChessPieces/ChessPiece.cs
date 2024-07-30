@@ -30,7 +30,7 @@ namespace Chess
             Vector2Int previousPosition = _position;
             _position = boardPosition;
             _hasMoved = true;
-            board.MovePieceOnBoard(this, previousPosition);
+            //board.MovePieceOnBoard(this, previousPosition);
             PawnPiece.ResetEnPassantState();
             OnMove?.Invoke(this, previousPosition);
         }
@@ -42,6 +42,7 @@ namespace Chess
         {
             OnDestroy?.Invoke(this);
         }
+        public void SetPosition(Vector2Int pos) => _position = pos;
         public abstract List<Vector2Int> GetValidMoves(ChessBoard board);
         protected void InvokeMoveEvent(ChessPiece piece, Vector2Int previousPosition) => OnMove?.Invoke(piece, previousPosition);
     }

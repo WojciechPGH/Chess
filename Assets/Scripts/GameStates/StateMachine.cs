@@ -62,7 +62,6 @@ namespace Chess
             _stateStack.Push(state);
             CurrentState?.Enter();
             OnStateChanged?.Invoke(state);
-            Debug.Log("Current state: " + CurrentState.ToString());
 
         }
 
@@ -78,7 +77,6 @@ namespace Chess
             _stateStack.Push(state);
             CurrentState?.Enter();
             OnStateChanged?.Invoke(state);
-            Debug.Log("Current state: " + CurrentState.ToString());
 
         }
 
@@ -89,15 +87,6 @@ namespace Chess
             _stateStack.Pop();
             CurrentState?.Enter();
             OnStateChanged?.Invoke(CurrentState);
-            Debug.Log("Current state: " + CurrentState.ToString());
         }
-
-        //public void TransitionTo(IGameState state)
-        //{
-        //    _currentState.Exit();
-        //    _currentState = state;
-        //    _currentState.Enter();
-        //    OnStateChanged?.Invoke(state);
-        //}
     }
 }

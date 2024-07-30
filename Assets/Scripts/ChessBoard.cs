@@ -10,8 +10,6 @@ namespace Chess
         private ChessPiece[,] _board;
         private List<ChessPiece> _capturedPieces;
         private ChessPieceFactory _factory;
-        //private ChessPieceColor _currentTurnColor;
-        //public ChessPieceColor CurrentTurnColor => _currentTurnColor;
 
         public event Action<ChessPiece, ChessFigures> OnChessPieceCreate;
         public event Action<PawnPiece> OnPawnPromote;
@@ -31,7 +29,6 @@ namespace Chess
                 _board[i, 6] = CreateChessPiece(ChessFigures.Pawn, ChessPieceColor.Black, i + BOARD_SIZE * 3, new Vector2Int(i, 6));
                 _board[i, 7] = CreateChessPiece(initialSetup[i], ChessPieceColor.Black, i + BOARD_SIZE * 2, new Vector2Int(i, 7));
             }
-            //_currentTurnColor = ChessPieceColor.White;
         }
 
         private ChessPiece CreateChessPiece(ChessFigures chessFifure, ChessPieceColor color, int id, Vector2Int position)
@@ -39,7 +36,21 @@ namespace Chess
             ChessPiece piece = _factory.CreateChessPiece(chessFifure, color, id, position);
             OnChessPieceCreate?.Invoke(piece, chessFifure);
             piece.OnCapture += OnChessPieceCapture;
+            piece.OnMove += OnChessPieceMove;
             return piece;
+        }
+
+        private void OnChessPieceMove(ChessPiece piece, Vector2Int boardPosition)
+        {
+            MovePieceOnBoard(piece, boardPosition);
+            if (IsInCheck(piece.Color))
+            {
+                Debug.Log(piece.Color.ToString() + "is in check!");
+                if (GetValidCheckMoves(piece.Color).Count == 0)
+                {
+                    Debug.Log(piece.Color.ToString() + "is in checkmate!");
+                }
+            }
         }
 
         private void OnChessPieceCapture(ChessPiece piece)
@@ -48,26 +59,49 @@ namespace Chess
             _board[piece.Position.x, piece.Position.y] = null;
         }
 
-        public void MovePieceOnBoard(ChessPiece piece, Vector2Int previousPosition)
+        private void MovePieceOnBoard(ChessPiece piece, Vector2Int previousPosition)
         {
             _board[previousPosition.x, previousPosition.y] = null;
             _board[piece.Position.x, piece.Position.y]?.Captured();
             _board[piece.Position.x, piece.Position.y] = piece;
         }
 
-        private bool IsInCheck(ChessPieceColor currentColor)
+        /// <summary>
+        /// Returns weather king of opposite color is in check and if so mark him as checked
+        /// </summary>
+        /// <param name="currentColor"></param>
+        /// <returns></returns>
+        public bool IsInCheck(ChessPieceColor currentColor)
         {
-            KingPiece king = null;
             foreach (ChessPiece piece in _board)
             {
-                if (piece != null && piece.Color != currentColor && piece is KingPiece)
-                    king = (KingPiece)piece;
+                if (piece != null && piece is KingPiece kingPiece && piece.Color != currentColor)
+                {
+                    return kingPiece.IsInCheck = IsUnderAttack(kingPiece.Position, kingPiece.Color);
+                }
             }
-            return king.IsInCheck = IsUnderAttack(king.Position, king.Color);
+            return false;
         }
 
-        private void IsCheckmate(ChessPieceColor currentColor)
+        public bool SimulateMove(ChessPiece piece, Vector2Int move)
         {
+            ChessPieceColor oppositeColor = piece.Color == ChessPieceColor.White ? ChessPieceColor.Black : ChessPieceColor.White;
+            ChessPiece capturedPiece = _board[move.x, move.y];
+            Vector2Int piecePos = piece.Position;
+            piece.SetPosition(move);
+            _board[move.x, move.y] = piece;
+            _board[piecePos.x, piecePos.y] = null;
+            bool isMoveValid = IsInCheck(oppositeColor) == false;
+            //revert move
+            piece.SetPosition(piecePos);
+            _board[piecePos.x, piecePos.y] = piece;
+            _board[move.x, move.y] = capturedPiece;
+            return isMoveValid;
+        }
+
+        private List<Vector2Int> GetValidCheckMoves(ChessPieceColor currentColor)
+        {
+            List<Vector2Int> validCheckMoves = new();
             ChessPiece piece;
             for (int x = 0; x < BOARD_SIZE; x++)
                 for (int y = 0; y < BOARD_SIZE; y++)
@@ -76,21 +110,26 @@ namespace Chess
                     if (piece != null && piece.Color != currentColor)
                     {
                         List<Vector2Int> validMoves = piece.GetValidMoves(this);
-                        ChessPiece capturedPiece;
                         foreach (Vector2Int move in validMoves)
                         {
-                            //simulate move
-                            capturedPiece = _board[move.x, move.y];
-                            _board[move.x, move.y] = piece;
-                            _board[x, y] = null;
+                            SimulateMove(piece, move);
+                            ////simulate move
+                            //capturedPiece = _board[move.x, move.y];
+                            //_board[move.x, move.y] = piece;
+                            //_board[x, y] = null;
 
-                            bool isCheckAfterMove = IsInCheck(currentColor);
-                            //revert move
-                            _board[x, y] = piece;
-                            _board[move.x, move.y] = capturedPiece;
+                            //if (IsInCheck(currentColor) == false)
+                            //{
+                            //    validCheckMoves.Add(move);
+                            //}
+                            ////revert move
+                            //_board[x, y] = piece;
+                            //_board[move.x, move.y] = capturedPiece;
+
                         }
                     }
                 }
+            return validCheckMoves;
         }
 
         private bool PositionWithinBounds(Vector2Int position)

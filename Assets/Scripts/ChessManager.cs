@@ -16,12 +16,12 @@ namespace Chess
         private ChessBoard _board;
         private ChessPieceMono _selectedPiece;
         private List<ValidMoveHighlight> _validMovesHighlights;
-        private readonly WhiteTurnState _whiteTurnState = new WhiteTurnState();
-        private readonly BlackTurnState _blackTurnState = new BlackTurnState();
-        private readonly PawnPromotionState _pawnPromotionState = new PawnPromotionState();
+        private WhiteTurnState _whiteTurnState;
+        private BlackTurnState _blackTurnState;
 
         private void Start()
         {
+            TurnsInit();
             _validMovesHighlights = new List<ValidMoveHighlight>();
             _stateMachine = StateMachine.Instance;
             _board = new ChessBoard();
@@ -31,6 +31,15 @@ namespace Chess
             _board.InitBoard();
             _stateMachine.ReplaceState(_whiteTurnState);
         }
+
+        private void TurnsInit()
+        {
+            _whiteTurnState = new WhiteTurnState(ChessPieceColor.White);
+            _blackTurnState = new BlackTurnState(ChessPieceColor.Black);
+            _whiteTurnState.SetNextTurnState(_blackTurnState);
+            _blackTurnState.SetNextTurnState(_whiteTurnState);
+        }
+
         private void OnDestroy()
         {
             _board.OnChessPieceCreate -= CreateChessPiece;
@@ -46,14 +55,12 @@ namespace Chess
 
         private void OnPawnPromote(PawnPiece piece)
         {
-            _promotionUIHandler.OnPawnPromotion(piece);
-            _stateMachine.AddState(_pawnPromotionState);
+            _stateMachine.AddState(new PawnPromotionState(_promotionUIHandler, piece));
         }
 
 
         private void CreateChessPiece(ChessPiece piece, ChessFigures figure)
         {
-
             GameObject inst = Instantiate(_prefabData.GetPrefab(figure, piece.Color), transform);
             ChessPieceMono mono = inst.AddComponent<ChessPieceMono>();
             inst.transform.position = mono.BoardToWorldPosition(piece.Position);
@@ -77,35 +84,33 @@ namespace Chess
             ClearHighlight();
         }
 
-        private void OnChessPieceSelected(ChessPieceMono obj)
+        private void OnChessPieceSelected(ChessPieceMono chessPiece)
         {
             ClearHighlight();
-            _selectedPiece = obj;
-            List<Vector2Int> validMoves = obj.ChessPiece.GetValidMoves(_board);
+            _selectedPiece = chessPiece;
+            List<Vector2Int> validMoves = chessPiece.ChessPiece.GetValidMoves(_board);
             Vector3 slightUp = Vector3.up * 0.001f;
             foreach (Vector2Int move in validMoves)
             {
-                Vector3 position = obj.BoardToWorldPosition(move);
-                GameObject highlightObject = Instantiate(_validMovesHighlight, position + slightUp, _validMovesHighlight.transform.rotation);
-                ValidMoveHighlight highlight = highlightObject.AddComponent<ValidMoveHighlight>();
-                highlight.BoardPosition = move;
-                highlight.OnValidMoveClick += OnValidMoveClick;
-                _validMovesHighlights.Add(highlight);
+                if (_board.SimulateMove(chessPiece.ChessPiece, move))
+                {
+                    Vector3 position = chessPiece.BoardToWorldPosition(move);
+                    GameObject highlightObject = Instantiate(_validMovesHighlight, position + slightUp, _validMovesHighlight.transform.rotation);
+                    ValidMoveHighlight highlight = highlightObject.AddComponent<ValidMoveHighlight>();
+                    highlight.BoardPosition = move;
+                    highlight.OnValidMoveClick += OnValidMoveClick;
+                    _validMovesHighlights.Add(highlight);
+                }
             }
         }
 
         private void OnValidMoveClick(ValidMoveHighlight highlight)
         {
-            IGameState gameTurn;
-            gameTurn = _stateMachine.CurrentState switch
+            ITurnState nextTurn;
+            nextTurn = _stateMachine.CurrentState is ITurnState turnState ? turnState.NextTurn : null;
+            if (nextTurn != null)
             {
-                WhiteTurnState => _blackTurnState,
-                BlackTurnState => _whiteTurnState,
-                _ => null
-            };
-            if (gameTurn != null)
-            {
-                _stateMachine.ReplaceState(gameTurn);
+                _stateMachine.ReplaceState(nextTurn);
                 _selectedPiece.ChessPiece.Move(_board, highlight.BoardPosition);
                 ClearHighlight();
             }
