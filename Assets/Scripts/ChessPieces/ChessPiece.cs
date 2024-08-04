@@ -30,7 +30,6 @@ namespace Chess
             Vector2Int previousPosition = _position;
             _position = boardPosition;
             _hasMoved = true;
-            //board.MovePieceOnBoard(this, previousPosition);
             PawnPiece.ResetEnPassantState();
             OnMove?.Invoke(this, previousPosition);
         }

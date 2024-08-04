@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Chess
 {
     public enum ChessFigures
@@ -18,11 +16,13 @@ namespace Chess
         Black = 2
     }
 
-    public static class MathfExtensions
+    public static class Helper
     {
-        public static int ManhattanDistance(this Vector2Int from, Vector2Int to)
+        public static string MainMenuSceneName => "MainMenuScene";
+        public static string GameSceneName => "GameScene";
+        public static ChessPieceColor GetOpositeColor(ChessPieceColor color)
         {
-            return (Mathf.Abs(to.x - from.x) + Mathf.Abs(to.y - from.y));
+            return color == ChessPieceColor.White ? ChessPieceColor.Black : ChessPieceColor.White;
         }
     }
 }

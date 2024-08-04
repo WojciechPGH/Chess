@@ -13,6 +13,9 @@ namespace Chess
 
         public event Action<ChessPiece, ChessFigures> OnChessPieceCreate;
         public event Action<PawnPiece> OnPawnPromote;
+        public event Action OnCheck;
+        public event Action<string> OnCheckmate;
+        public event Action<string> OnStalemate;
 
         public void InitBoard()
         {
@@ -43,12 +46,22 @@ namespace Chess
         private void OnChessPieceMove(ChessPiece piece, Vector2Int boardPosition)
         {
             MovePieceOnBoard(piece, boardPosition);
-            if (IsInCheck(piece.Color))
+            if (IsInCheck(piece.Color))//check if opposite king is in check
             {
-                Debug.Log(piece.Color.ToString() + "is in check!");
-                if (GetValidCheckMoves(piece.Color).Count == 0)
+                if (GetAllValidMoves(piece.Color).Count == 0)
                 {
-                    Debug.Log(piece.Color.ToString() + "is in checkmate!");
+                    OnCheckmate?.Invoke("Checkmate!");
+                }
+                else
+                {
+                    OnCheck?.Invoke();
+                }
+            }
+            else
+            {
+                if (GetAllValidMoves(piece.Color).Count == 0)
+                {
+                    OnStalemate?.Invoke("Stalemate!");
                 }
             }
         }
@@ -83,9 +96,15 @@ namespace Chess
             return false;
         }
 
+        /// <summary>
+        /// Checks weather move puts king in check
+        /// </summary>
+        /// <param name="piece"></param>
+        /// <param name="move"></param>
+        /// <returns></returns>
         public bool SimulateMove(ChessPiece piece, Vector2Int move)
         {
-            ChessPieceColor oppositeColor = piece.Color == ChessPieceColor.White ? ChessPieceColor.Black : ChessPieceColor.White;
+            ChessPieceColor oppositeColor = Helper.GetOpositeColor(piece.Color);
             ChessPiece capturedPiece = _board[move.x, move.y];
             Vector2Int piecePos = piece.Position;
             piece.SetPosition(move);
@@ -99,7 +118,7 @@ namespace Chess
             return isMoveValid;
         }
 
-        private List<Vector2Int> GetValidCheckMoves(ChessPieceColor currentColor)
+        private List<Vector2Int> GetAllValidMoves(ChessPieceColor currentColor)
         {
             List<Vector2Int> validCheckMoves = new();
             ChessPiece piece;
@@ -112,20 +131,8 @@ namespace Chess
                         List<Vector2Int> validMoves = piece.GetValidMoves(this);
                         foreach (Vector2Int move in validMoves)
                         {
-                            SimulateMove(piece, move);
-                            ////simulate move
-                            //capturedPiece = _board[move.x, move.y];
-                            //_board[move.x, move.y] = piece;
-                            //_board[x, y] = null;
-
-                            //if (IsInCheck(currentColor) == false)
-                            //{
-                            //    validCheckMoves.Add(move);
-                            //}
-                            ////revert move
-                            //_board[x, y] = piece;
-                            //_board[move.x, move.y] = capturedPiece;
-
+                            if (SimulateMove(piece, move))
+                                validCheckMoves.Add(move);
                         }
                     }
                 }
@@ -160,19 +167,10 @@ namespace Chess
             {
                 if (piece != null && piece.Color != pieceColor)
                 {
-                    List<Vector2Int> validMoves;
-                    validMoves = (piece is KingPiece) ? (piece as KingPiece).GetAttackMoves(this) : piece.GetValidMoves(this);
-                    if (validMoves.Contains(position)) return true;
+                    if (piece.GetValidMoves(this).Contains(position)) return true;
                 }
             }
             return false;
-        }
-
-        public ChessPiece GetPiece(Vector2Int position)
-        {
-            if (PositionWithinBounds(position))
-                return _board[position.x, position.y];
-            return null;
         }
 
         public ChessPiece GetPiece(int x, int y)
@@ -184,7 +182,6 @@ namespace Chess
 
         public void OnPawnPromoted(PawnPiece pawn, ChessFigures figure)
         {
-            pawn.Destroy();
             _board[pawn.Position.x, pawn.Position.y] = CreateChessPiece(figure, pawn.Color, pawn.ID, pawn.Position);
         }
 

@@ -13,17 +13,8 @@ namespace Chess
         private Color _selectedColor = Color.blue;
         private Color _mouseOverColor = Color.HSVToRGB(113f / 255f, 1f, 1f);
         public ChessPiece ChessPiece { get { return _piece; } }
-        public event Action<ChessPieceMono> OnChessPieceSelected;
-        public event Action<ChessPieceMono> OnChessPieceDeselected;
-        public event Action<ChessPieceMono> OnDestroyEvent;
-
-        private void Start()
-        {
-            _outline = gameObject.AddComponent<Outline>();
-            _outline.OutlineColor = _mouseOverColor;
-            _outline.OutlineWidth = 4f;
-            _outline.enabled = false;
-        }
+        public event Action<ChessPieceMono> OnChessPieceSelect;
+        public event Action<ChessPieceMono> OnChessPieceDeselect;
 
         private void OnDestroy()
         {
@@ -31,8 +22,9 @@ namespace Chess
             {
                 _piece.OnMove -= OnPieceMove;
                 _piece.OnCapture -= OnPieceCapture;
+                _piece.OnDestroy -= OnPieceDestroy;
             }
-            OnDestroyEvent?.Invoke(this);
+            StateMachine.Instance.OnStateChanged -= TurnChanged;
         }
 
         private void OnMouseEnter()
@@ -66,11 +58,11 @@ namespace Chess
                 _isSelected = !_isSelected;
                 if (_isSelected)
                 {
-                    OnChessPieceSelected?.Invoke(this);
+                    OnChessPieceSelect?.Invoke(this);
                 }
                 else
                 {
-                    OnChessPieceDeselected?.Invoke(this);
+                    OnChessPieceDeselect?.Invoke(this);
                 }
                 CheckSelected();
             }
@@ -82,6 +74,12 @@ namespace Chess
             _piece.OnMove += OnPieceMove;
             _piece.OnCapture += OnPieceCapture;
             _piece.OnDestroy += OnPieceDestroy;
+            transform.position = BoardToWorldPosition(piece.Position);
+            _outline = gameObject.AddComponent<Outline>();
+            _outline.OutlineColor = _mouseOverColor;
+            _outline.OutlineWidth = 4f;
+            _outline.enabled = false;
+            StateMachine.Instance.OnStateChanged += TurnChanged;
         }
 
         public void TurnChanged(IGameState gameState)

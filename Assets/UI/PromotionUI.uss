@@ -2,3 +2,10 @@
     -unity-font-style: normal;
     font-size: 48px;
 }
+
+.MenuBtn {
+    width: 65%;
+    margin-top: 0;
+    font-size: 24px;
+    -unity-text-align: upper-center;
+}

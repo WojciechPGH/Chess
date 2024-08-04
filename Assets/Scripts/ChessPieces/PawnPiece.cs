@@ -5,14 +5,10 @@ namespace Chess
 {
     public class PawnPiece : ChessPiece
     {
-        private readonly Dictionary<ChessPieceColor, int> _promotionLine;
         private static PawnPiece _twoStepLastTurn;
         private static Vector2Int? _enPassantPosition;
 
-        public PawnPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position)
-        {
-            _promotionLine ??= new Dictionary<ChessPieceColor, int> { { ChessPieceColor.Black, 0 }, { ChessPieceColor.White, 7 } };
-        }
+        public PawnPiece(int id, Vector2Int position, ChessPieceColor color) : base(color, id, position) { }
 
         public override List<Vector2Int> GetValidMoves(ChessBoard board)
         {
@@ -84,7 +80,8 @@ namespace Chess
 
         private void HandlePromotion(ChessBoard board)
         {
-            if (_position.y == _promotionLine[_color])
+            float promotionLine = _color == ChessPieceColor.White ? 7 : 0;
+            if (_position.y == promotionLine)
                 board.PromotePawn(this);
         }
         public static void ResetEnPassantState()

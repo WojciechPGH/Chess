@@ -11,25 +11,27 @@ namespace Chess
         [SerializeField]
         private GameObject _validMovesHighlight;
         [SerializeField]
-        private PawnPromotionUIHandler _promotionUIHandler;
+        private UIManager _UIManager;
         private StateMachine _stateMachine;
         private ChessBoard _board;
-        private ChessPieceMono _selectedPiece;
-        private List<ValidMoveHighlight> _validMovesHighlights;
+        private MoveHighlightManager _highlightManager;
         private WhiteTurnState _whiteTurnState;
         private BlackTurnState _blackTurnState;
 
         private void Start()
         {
             TurnsInit();
-            _validMovesHighlights = new List<ValidMoveHighlight>();
+            _highlightManager = new MoveHighlightManager(this, _validMovesHighlight);
             _stateMachine = StateMachine.Instance;
             _board = new ChessBoard();
             _board.OnChessPieceCreate += CreateChessPiece;
-            _board.OnPawnPromote += OnPawnPromote;
-            _promotionUIHandler.OnUIClose += OnPawnPromotionExit;
             _board.InitBoard();
-            _stateMachine.ReplaceState(_whiteTurnState);
+            _UIManager.Init(_board, _stateMachine);
+            _stateMachine.Initialize(_whiteTurnState);
+        }
+        private void OnDestroy()
+        {
+            _board.OnChessPieceCreate -= CreateChessPiece;
         }
 
         private void TurnsInit()
@@ -40,99 +42,40 @@ namespace Chess
             _blackTurnState.SetNextTurnState(_whiteTurnState);
         }
 
-        private void OnDestroy()
-        {
-            _board.OnChessPieceCreate -= CreateChessPiece;
-            _board.OnPawnPromote -= OnPawnPromote;
-            _promotionUIHandler.OnUIClose -= _board.OnPawnPromoted;
-        }
-
-        private void OnPawnPromotionExit(PawnPiece piece, ChessFigures figure)
-        {
-            _board.OnPawnPromoted(piece, figure);
-            _stateMachine.RemoveState();
-        }
-
-        private void OnPawnPromote(PawnPiece piece)
-        {
-            _stateMachine.AddState(new PawnPromotionState(_promotionUIHandler, piece));
-        }
-
-
         private void CreateChessPiece(ChessPiece piece, ChessFigures figure)
         {
             GameObject inst = Instantiate(_prefabData.GetPrefab(figure, piece.Color), transform);
             ChessPieceMono mono = inst.AddComponent<ChessPieceMono>();
-            inst.transform.position = mono.BoardToWorldPosition(piece.Position);
             mono.Init(piece);
-            mono.OnChessPieceSelected += OnChessPieceSelected;
-            mono.OnChessPieceDeselected += OnChessPieceDeselected;
-            mono.OnDestroyEvent += OnChessPieceDestroy;
-            _stateMachine.OnStateChanged += mono.TurnChanged;
+            _highlightManager.RegisterCallbacks(mono);
         }
 
-        private void OnChessPieceDestroy(ChessPieceMono mono)
+        public List<Vector2Int> GetValidMoves(ChessPiece piece)
         {
-            mono.OnChessPieceSelected -= OnChessPieceSelected;
-            mono.OnChessPieceDeselected -= OnChessPieceDeselected;
-            _stateMachine.OnStateChanged -= mono.TurnChanged;
-            mono.OnDestroyEvent -= OnChessPieceDestroy;
+            return piece.GetValidMoves(_board).FindAll(move => PruneValidMoves(piece, move));
         }
-
-        private void OnChessPieceDeselected(ChessPieceMono obj)
+        private bool PruneValidMoves(ChessPiece piece, Vector2Int move)
         {
-            ClearHighlight();
-        }
-
-        private void OnChessPieceSelected(ChessPieceMono chessPiece)
-        {
-            ClearHighlight();
-            _selectedPiece = chessPiece;
-            List<Vector2Int> validMoves = chessPiece.ChessPiece.GetValidMoves(_board);
-            Vector3 slightUp = Vector3.up * 0.001f;
-            foreach (Vector2Int move in validMoves)
+            if (piece is KingPiece kingPiece)
             {
-                if (_board.SimulateMove(chessPiece.ChessPiece, move))
+                float deltaX = kingPiece.Position.x - move.x;
+                if (deltaX == 2 || deltaX == -2)
                 {
-                    Vector3 position = chessPiece.BoardToWorldPosition(move);
-                    GameObject highlightObject = Instantiate(_validMovesHighlight, position + slightUp, _validMovesHighlight.transform.rotation);
-                    ValidMoveHighlight highlight = highlightObject.AddComponent<ValidMoveHighlight>();
-                    highlight.BoardPosition = move;
-                    highlight.OnValidMoveClick += OnValidMoveClick;
-                    _validMovesHighlights.Add(highlight);
+                    bool kingSide = deltaX == 2;
+                    return kingPiece.CanCastle(_board, kingSide) & _board.SimulateMove(kingPiece, move);
                 }
             }
+            return _board.SimulateMove(piece, move);
         }
-
-        private void OnValidMoveClick(ValidMoveHighlight highlight)
+        public void ValidMoveClick(ValidMoveHighlight highlight, ChessPiece piece)
         {
             ITurnState nextTurn;
             nextTurn = _stateMachine.CurrentState is ITurnState turnState ? turnState.NextTurn : null;
             if (nextTurn != null)
             {
                 _stateMachine.ReplaceState(nextTurn);
-                _selectedPiece.ChessPiece.Move(_board, highlight.BoardPosition);
-                ClearHighlight();
+                piece.Move(_board, highlight.BoardPosition);
             }
         }
-
-        private void ClearHighlight()
-        {
-            if (_validMovesHighlights.Count > 0)
-            {
-                for (int i = 0; i < _validMovesHighlights.Count; i++)
-                {
-                    _validMovesHighlights[i].OnValidMoveClick -= OnValidMoveClick;
-                    Destroy(_validMovesHighlights[i].gameObject);
-                }
-            }
-            _validMovesHighlights.Clear();
-            if (_selectedPiece != null)
-            {
-                _selectedPiece.Deselect();
-                _selectedPiece = null;
-            }
-        }
-
     }
 }

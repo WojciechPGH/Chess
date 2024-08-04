@@ -13,16 +13,16 @@ namespace Chess
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = GameObject.FindAnyObjectByType<StateMachine>();
-                    if (_instance == null)
-                    {
-                        GameObject stateMachine = new GameObject(typeof(StateMachine).ToString());
-                        _instance = stateMachine.AddComponent<StateMachine>();
-                        DontDestroyOnLoad(stateMachine);
-                    }
-                }
+                //if (_instance == null)
+                //{
+                //    _instance = FindAnyObjectByType<StateMachine>();
+                //    if (_instance == null)
+                //    {
+                //        GameObject stateMachine = new GameObject(typeof(StateMachine).ToString());
+                //        _instance = stateMachine.AddComponent<StateMachine>();
+                //        DontDestroyOnLoad(stateMachine);
+                //    }
+                //}
                 return _instance;
             }
         }
@@ -34,7 +34,7 @@ namespace Chess
             if (_instance == null)
             {
                 _instance = GetComponent<StateMachine>();
-                Initialize(new InitState());
+                Initialize(new MainMenuState());
             }
             else if (_instance != this)
             {
@@ -42,7 +42,7 @@ namespace Chess
             }
         }
 
-        private void Initialize(IGameState state)
+        public void Initialize(IGameState state)
         {
             _stateStack = new Stack<IGameState>();
             _stateStack.Push(state);
