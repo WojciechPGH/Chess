@@ -1,6 +1,13 @@
 .PromotionBtn {
     -unity-font-style: normal;
     font-size: 48px;
+    min-width: 64px;
+    min-height: 64px;
+    max-width: 96px;
+    max-height: 96px;
+    width: 84px;
+    height: 84px;
+    -unity-font: url('project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=2230732570650464555&guid=7293327874347b64bb0ddc5255d38e6c&type=3#NotInter-Regular');
 }
 
 .MenuBtn {

@@ -2,10 +2,10 @@
     <Style src="project://database/Assets/UI/PromotionUI.uss?fileID=7433441132597879392&amp;guid=5d3ea41ee8f1d2947aebada823745520&amp;type=3#PromotionUI" />
     <ui:VisualElement style="flex-grow: 1; align-self: center; flex-direction: row; align-items: center; justify-content: center;">
         <ui:VisualElement name="Panel" style="flex-grow: 1; flex-direction: row; align-items: center; justify-content: center; align-self: center; width: 60%; height: 40%; max-width: 60%; max-height: 40%; min-width: 0; background-color: rgba(77, 77, 77, 0.75); border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-left-color: rgb(77, 77, 77); border-right-color: rgb(77, 77, 77); border-top-color: rgb(77, 77, 77); border-bottom-color: rgb(77, 77, 77); opacity: 1;">
-            <ui:Button text="♛" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnQueen" class="PromotionBtn" />
-            <ui:Button text="♜" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnRook" class="PromotionBtn" />
-            <ui:Button text="♝" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnBishop" class="PromotionBtn" />
-            <ui:Button text="♞" parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnKnight" class="PromotionBtn" />
+            <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnQueen" class="PromotionBtn" style="background-image: url(&apos;project://database/Assets/Textures/QueenIcon.png?fileID=2800000&amp;guid=f47b1080d67643e4e84e9a3a7082818b&amp;type=3#QueenIcon&apos;);" />
+            <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnRook" class="PromotionBtn" style="background-image: url(&apos;project://database/Assets/Textures/RookIcon.png?fileID=2800000&amp;guid=0cf8665705e31f148a11dd9575e83660&amp;type=3#RookIcon&apos;);" />
+            <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnBishop" class="PromotionBtn" style="background-image: url(&apos;project://database/Assets/Textures/BishopIcon.png?fileID=2800000&amp;guid=735f55d33c940ad4f9490497c7dab4e3&amp;type=3#BishopIcon&apos;);" />
+            <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="BtnKnight" class="PromotionBtn" style="background-image: url(&apos;project://database/Assets/Textures/KnightIcon.png?fileID=2800000&amp;guid=ef536c847cc89864095aba7187593978&amp;type=3#KnightIcon&apos;);" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
