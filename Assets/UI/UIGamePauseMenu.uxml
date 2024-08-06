@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/PromotionUI.uss?fileID=7433441132597879392&amp;guid=5d3ea41ee8f1d2947aebada823745520&amp;type=3#PromotionUI" />
+    <ui:VisualElement style="flex-grow: 1; justify-content: center; align-items: center;">
+        <ui:VisualElement name="Panel" style="flex-grow: 1; flex-direction: column; align-items: center; justify-content: space-around; align-self: center; width: 50%; height: 25%; max-width: 50%; max-height: 25%; min-width: 40%; background-color: rgba(77, 77, 77, 0.75); border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-left-color: rgb(77, 77, 77); border-right-color: rgb(77, 77, 77); border-top-color: rgb(77, 77, 77); border-bottom-color: rgb(77, 77, 77); opacity: 1; min-height: 20%;">
+            <ui:Button text="Continue" parse-escape-sequences="true" display-tooltip-when-elided="true" name="continueBtn" class="MenuBtn" style="background-color: rgb(87, 204, 0);" />
+            <ui:Button text="Main Menu" parse-escape-sequences="true" display-tooltip-when-elided="true" name="exitBtn" class="MenuBtn" style="background-color: rgb(144, 54, 54);" />
+        </ui:VisualElement>
+        <ui:Label tabindex="-1" text="Game by Wojciech Paluch" parse-escape-sequences="true" display-tooltip-when-elided="true" style="position: absolute; bottom: 0; right: 0;" />
+    </ui:VisualElement>
+</ui:UXML>

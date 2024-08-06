@@ -13,16 +13,6 @@ namespace Chess
         {
             get
             {
-                //if (_instance == null)
-                //{
-                //    _instance = FindAnyObjectByType<StateMachine>();
-                //    if (_instance == null)
-                //    {
-                //        GameObject stateMachine = new GameObject(typeof(StateMachine).ToString());
-                //        _instance = stateMachine.AddComponent<StateMachine>();
-                //        DontDestroyOnLoad(stateMachine);
-                //    }
-                //}
                 return _instance;
             }
         }
@@ -58,7 +48,8 @@ namespace Chess
         {
             if (state == CurrentState) return;
             CurrentState?.Exit();
-            _stateStack.Pop();
+            if (_stateStack.Count > 0)
+                _stateStack.Pop();
             _stateStack.Push(state);
             CurrentState?.Enter();
             OnStateChanged?.Invoke(state);

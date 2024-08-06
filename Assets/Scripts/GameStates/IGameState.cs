@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Chess
@@ -28,6 +29,40 @@ namespace Chess
         }
     }
 
+    public class GameStartState : IGameState
+    {
+        public void Enter()
+        {
+            SceneManager.LoadScene(Helper.GameSceneName);
+        }
+
+        public void Exit()
+        {
+        }
+    }
+
+    public class GameMenuState : IGameState
+    {
+        public void Enter()
+        {
+        }
+
+        public void Exit()
+        {
+        }
+    }
+    public class GameCameraRotateState : IGameState
+    {
+        public void Enter()
+        {
+        }
+
+        public void Exit()
+        {
+        }
+    }
+
+
     public class GameEndState : IGameState
     {
         private GameEndUIHandler _gameEndUIHandler;
@@ -42,6 +77,18 @@ namespace Chess
         public void Enter()
         {
             _gameEndUIHandler.OnGameEnd(_gameEndText);
+        }
+
+        public void Exit()
+        {
+        }
+    }
+
+    public class GameExitState : IGameState
+    {
+        public void Enter()
+        {
+            Application.Quit();
         }
 
         public void Exit()
